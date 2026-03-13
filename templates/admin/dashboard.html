@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — TaskFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0D0D0F;--surface:#141416;--surface2:#1C1C20;--border:rgba(255,255,255,0.08);
+  --text:#F0EEE9;--sub:#6B6A72;--muted:#3A3940;
+  --accent:#C8F135;--accent-d:#9BBF1A;--accent-glow:rgba(200,241,53,0.12);
+  --high:#FF5C5C;--warn:#FFB347;--r:14px;--t:.2s cubic-bezier(.4,0,.2,1);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;
+    border-bottom:1px solid var(--border);background:var(--surface)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-box{width:30px;height:30px;background:var(--accent);border-radius:8px;
+          display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#0D0D0F}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--text)}
+.nav-links{display:flex;gap:8px}
+.nav-link{padding:8px 16px;border-radius:8px;font-size:14px;color:var(--sub);text-decoration:none;transition:all var(--t)}
+.nav-link:hover,.nav-link.active{background:var(--surface2);color:var(--text)}
+
+main{max-width:1200px;margin:0 auto;padding:40px 24px}
+.page-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px;margin-bottom:6px}
+.page-sub{color:var(--sub);font-size:14px;margin-bottom:36px}
+
+/* Stat row */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:40px}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px}
+.stat-val{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--accent)}
+.stat-lbl{font-size:13px;color:var(--sub);margin-top:4px}
+
+/* Table */
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.table-header{padding:20px 24px;border-bottom:1px solid var(--border);
+              display:flex;align-items:center;justify-content:space-between}
+.table-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700}
+.search-inp{background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+            padding:8px 14px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;
+            outline:none;width:220px;transition:all var(--t)}
+.search-inp:focus{border-color:var(--accent)}
+.search-inp::placeholder{color:var(--muted)}
+
+table{width:100%;border-collapse:collapse}
+th{padding:12px 20px;text-align:left;font-size:11px;font-weight:600;color:var(--sub);
+   text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border)}
+td{padding:14px 20px;font-size:14px;border-bottom:1px solid rgba(255,255,255,0.04)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surface2)}
+
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600}
+.badge.pro{background:var(--accent-glow);border:1px solid var(--accent);color:var(--accent)}
+.badge.free{background:var(--surface2);border:1px solid var(--border);color:var(--sub)}
+.badge.admin{background:rgba(255,92,92,.1);border:1px solid rgba(255,92,92,.3);color:var(--high)}
+
+.action-btn{padding:5px 12px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);
+            color:var(--text);font-size:12px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;
+            transition:all var(--t)}
+.action-btn:hover{border-color:rgba(255,255,255,.2)}
+.action-btn.upgrade{border-color:var(--accent);color:var(--accent)}
+.action-btn.upgrade:hover{background:var(--accent-glow)}
+.action-btn.downgrade{border-color:var(--high);color:var(--high)}
+.action-btn.downgrade:hover{background:rgba(255,92,92,.1)}
+
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:10px;font-size:14px;
+       font-weight:500;z-index:999;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none}
+.toast.ok{background:#1a3a1a;border:1px solid #4ADE80;color:#4ADE80}
+.toast.err{background:#3a1a1a;border:1px solid var(--high);color:var(--high)}
+.toast.show{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/">
+    <div class="logo-box">✓</div>
+    <div class="logo-text">TaskFlow Admin</div>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">← App</a>
+    <a href="/admin/" class="nav-link active">Users</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">Admin Panel</div>
+  <div class="page-sub">Manage users, subscriptions, and platform health.</div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat">
+      <div class="stat-val">{{ stats.total_users }}</div>
+      <div class="stat-lbl">Total Users</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">{{ stats.pro_users }}</div>
+      <div class="stat-lbl">Pro Subscribers</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">{{ stats.total_tasks }}</div>
+      <div class="stat-lbl">Total Tasks</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">{{ stats.completed_tasks }}</div>
+      <div class="stat-lbl">Completed Tasks</div>
+    </div>
+  </div>
+
+  <!-- Users table -->
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">All Users</div>
+      <input class="search-inp" type="text" placeholder="Search by name or email…" oninput="filterTable(this.value)">
+    </div>
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Email</th>
+          <th>Plan</th>
+          <th>Tasks</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user, sub in users %}
+        <tr data-search="{{ user.name.lower() }} {{ user.email.lower() }}">
+          <td>
+            <div style="display:flex;align-items:center;gap:10px">
+              <img src="{{ user.avatar_url() }}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:1px solid var(--border)" alt="">
+              <div>
+                <div style="font-weight:500">{{ user.name }}</div>
+                {% if user.is_admin %}<span class="badge admin" style="font-size:10px">admin</span>{% endif %}
+              </div>
+            </div>
+          </td>
+          <td style="color:var(--sub)">{{ user.email }}</td>
+          <td>
+            <span class="badge {{ 'pro' if sub and sub.plan == 'pro' else 'free' }}">
+              {{ sub.plan if sub else 'free' }}
+            </span>
+          </td>
+          <td>{{ user.task_count }}</td>
+          <td style="color:var(--sub)">{{ user.created_at.strftime('%b %d, %Y') }}</td>
+          <td>
+            {% if not user.is_admin %}
+              {% if sub and sub.plan == 'pro' %}
+                <button class="action-btn downgrade" onclick="setPlan({{ user.id }}, 'downgrade')">Downgrade</button>
+              {% else %}
+                <button class="action-btn upgrade" onclick="setPlan({{ user.id }}, 'upgrade')">Upgrade</button>
+              {% endif %}
+            {% else %}
+              <span style="color:var(--muted);font-size:12px">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showToast(msg, type='ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+async function setPlan(userId, action) {
+  const res = await fetch(`/admin/api/users/${userId}/${action}`, { method: 'POST' });
+  if (res.ok) {
+    showToast(`User ${action}d successfully.`);
+    setTimeout(() => location.reload(), 800);
+  } else {
+    showToast('Action failed.', 'err');
+  }
+}
+
+function filterTable(q) {
+  q = q.toLowerCase();
+  document.querySelectorAll('#userTable tbody tr').forEach(row => {
+    row.style.display = row.dataset.search.includes(q) ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>

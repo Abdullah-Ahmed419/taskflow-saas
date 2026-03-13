@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — TaskFlow</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#0D0D0F;--surface:#141416;--surface2:#1C1C20;--border:rgba(255,255,255,0.08);
+  --text:#F0EEE9;--sub:#6B6A72;--muted:#3A3940;
+  --accent:#C8F135;--accent-d:#9BBF1A;--accent-glow:rgba(200,241,53,0.12);
+  --high:#FF5C5C;--warn:#FFB347;--r:14px;--t:.2s cubic-bezier(.4,0,.2,1);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── Nav ── */
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;
+    border-bottom:1px solid var(--border);background:var(--surface)}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-box{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;
+          align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#0D0D0F}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--text)}
+.nav-links{display:flex;gap:8px;align-items:center}
+.nav-link{padding:8px 16px;border-radius:8px;font-size:14px;color:var(--sub);
+          text-decoration:none;transition:all var(--t)}
+.nav-link:hover,.nav-link.active{background:var(--surface2);color:var(--text)}
+.avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid var(--border)}
+
+/* ── Layout ── */
+main{max-width:1100px;margin:0 auto;padding:40px 24px}
+.page-header{margin-bottom:32px}
+.page-title{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;letter-spacing:-1px}
+.page-sub{color:var(--sub);font-size:14px;margin-top:4px}
+
+/* ── Stat cards ── */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:40px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;
+           position:relative;overflow:hidden;transition:all var(--t)}
+.stat-card:hover{border-color:rgba(255,255,255,0.15);transform:translateY(-2px)}
+.stat-icon{font-size:28px;margin-bottom:12px}
+.stat-value{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;letter-spacing:-1px}
+.stat-label{font-size:13px;color:var(--sub);margin-top:4px}
+.stat-card.accent .stat-value{color:var(--accent)}
+.stat-card.success .stat-value{color:#4ADE80}
+.stat-card.warn    .stat-value{color:var(--warn)}
+.stat-card.danger  .stat-value{color:var(--high)}
+
+/* Progress bar */
+.progress-wrap{margin-top:12px}
+.progress-bar-bg{background:var(--surface2);border-radius:99px;height:6px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:99px;background:var(--accent);
+                   transition:width 1s cubic-bezier(.4,0,.2,1)}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-top:6px}
+
+/* ── Plan banner ── */
+.plan-banner{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);
+             padding:20px 24px;margin-bottom:32px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.plan-badge{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);
+            border:1px solid var(--border);border-radius:99px;padding:4px 14px;font-size:13px;font-weight:600}
+.plan-badge.pro{background:var(--accent-glow);border-color:var(--accent);color:var(--accent)}
+.plan-info{flex:1}
+.plan-name{font-weight:600;margin-bottom:2px}
+.plan-desc{font-size:13px;color:var(--sub)}
+.btn-upgrade{padding:10px 20px;border-radius:var(--r);border:none;background:var(--accent);
+             color:#0D0D0F;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;
+             text-decoration:none;transition:all var(--t)}
+.btn-upgrade:hover{background:var(--accent-d);transform:translateY(-1px)}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/">
+    <div class="logo-box">✓</div>
+    <div class="logo-text">TaskFlow</div>
+  </a>
+  <div class="nav-links">
+    <a href="/" class="nav-link">Tasks</a>
+    <a href="/dashboard" class="nav-link active">Dashboard</a>
+    <a href="/profile" class="nav-link">Profile</a>
+    {% if user.is_admin %}<a href="/admin/" class="nav-link">Admin</a>{% endif %}
+    <a href="/logout" class="nav-link">Logout</a>
+    <img src="{{ user.avatar_url() }}" class="avatar" alt="avatar">
+  </div>
+</nav>
+
+<main>
+  <div class="page-header">
+    <div class="page-title">Dashboard</div>
+    <div class="page-sub">Hi {{ user.name }}, here's your productivity overview.</div>
+  </div>
+
+  <!-- Plan banner -->
+  <div class="plan-banner">
+    <div class="plan-info">
+      <div class="plan-name">
+        <span class="plan-badge {% if user.is_pro %}pro{% endif %}">
+          {% if user.is_pro %}⚡ Pro Plan{% else %}🆓 Free Plan{% endif %}
+        </span>
+      </div>
+      <div class="plan-desc" style="margin-top:8px">
+        {% if user.is_pro %}
+          Unlimited tasks · Priority support · All features
+        {% else %}
+          {{ stats.total }} / 10 tasks used &nbsp;·&nbsp; Upgrade for unlimited tasks
+        {% endif %}
+      </div>
+    </div>
+    {% if not user.is_pro %}
+      <a href="#upgrade" class="btn-upgrade">Upgrade to Pro →</a>
+    {% endif %}
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card accent">
+      <div class="stat-icon">📋</div>
+      <div class="stat-value">{{ stats.total }}</div>
+      <div class="stat-label">Total Tasks</div>
+    </div>
+
+    <div class="stat-card success">
+      <div class="stat-icon">✅</div>
+      <div class="stat-value">{{ stats.completed }}</div>
+      <div class="stat-label">Completed</div>
+    </div>
+
+    <div class="stat-card warn">
+      <div class="stat-icon">⏳</div>
+      <div class="stat-value">{{ stats.pending }}</div>
+      <div class="stat-label">Pending</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-value">{{ stats.pct }}%</div>
+      <div class="stat-label">Completion Rate</div>
+      <div class="progress-wrap">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" style="width:{{ stats.pct }}%"></div>
+        </div>
+        <div class="progress-label">
+          <span>{{ stats.completed }} done</span>
+          <span>{{ stats.pending }} left</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+</body>
+</html>
